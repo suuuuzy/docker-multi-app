@@ -1,0 +1,23 @@
+language: generic
+
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t jangsooji/react-test-app -f ./frontend/Dockerfile.dev ./frontend
+
+script:
+  - docker run -e CI=true jangsooji/react-test-app npm run test
+
+after_success:
+  - docker build -t jangsooji/docker-frontend ./frontend
+  - docker build -t jangsooji/docker-backend ./backend
+  - docker build -t jangsooji/docker-nginx ./nginx
+
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" --password-stdin
+
+  - docker push jangsooji/docker-frontend
+  - docker push jangsooji/docker-backend
+  - docker push jangsooji/docker-nginx
